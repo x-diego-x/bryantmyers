@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería Virtual</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilo general */
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+       .encabezado {
+            background-color: #fff;
+            padding: 10px 20px;
+            border-bottom: 2px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: top 0.3s; /* Transición suave */
+        }
+        /* Estilo del título */
+        .titulo-museo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+        /* Estilo de la navegación */
+        .navegacion {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .navegacion a {
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        .navegacion a:hover {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+        /* Estilo de la lupa */
+        .lupa {
+            position: absolute;
+            top: 22px;
+            left: 20px;
+            cursor: pointer;
+            font-size: 24px;
+            color: #333;
+        }
+        /* Estilo del campo de búsqueda */
+        .campo-busqueda {
+            position: absolute;
+            top: 30px;
+            left: 70px;
+            display: none; /* Oculto por defecto */
+        }
+        .campo-busqueda input[type="text"] {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .galeria {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: space-around;
+            margin-top: 30px;
+            background-image: url('URL-DE-LA-IMAGEN');
+            background-size: cover;
+            background-position: center;
+            padding: 20px; /* Añadido para darle espacio interior */
+            border-radius: 10px; /* Añadido para redondear las esquinas */
+        }
+        .obra {
+            width: calc(25% - 16px);
+            min-width: 300px; /* Ancho mínimo para evitar deformaciones */
+            box-sizing: border-box;
+            background-color: #fff;
+            border: 2px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 16px;
+            position: relative;
+            display: flex; /* Usar flex para mejorar la alineación */
+            flex-direction: column; /* Alinear el contenido en columna */
+        }
+        .obra img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #333; /* Simula un marco de la imagen */
+            margin-bottom: 10px;
+            cursor: pointer; /* Cambia el cursor al pasar sobre la imagen */
+        }
+        .ficha-tecnica {
+            background-color: #eaeaea;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .descripcion {
+            font-size: 14px;
+            color: #555;
+        }
+        /* Estilo para la imagen expandida */
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8); /* Fondo semi-transparente */
+            justify-content: center;
+            align-items: center;
+            z-index: 1001; /* Asegura que el modal esté por encima */
+        }
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .boton-ocultar {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            padding: 8px 12px;
+            border: 5px solid #333;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+    </style>
+</head>
+<body>
+    <!-- Encabezado -->
+    <header class="encabezado">
+        <div class="lupa" onclick="toggleBusqueda()">
+            <img src="https://i.ibb.co/rsgcvmq/tool-16205471.png" alt="Buscar" style="width: 50px; height: 50px;">
+        </div>
+        <div class="campo-busqueda" id="campoBusqueda">
+            <input type="text" id="buscar" placeholder="Buscar obra..." onkeyup="filtrarObras()">
+        </div>
+        <h1 class="titulo-museo">Galería Virtual</h1>
+        <nav class="navegacion">
+            <a href="#colecciones">Colecciones</a>
+            <a href="#exposiciones">Exposiciones</a>
+        </nav>
+    </header>
+
+    <script>
+        // Función para mostrar/ocultar el campo de búsqueda
+        function toggleBusqueda() {
+            var campoBusqueda = document.getElementById('campoBusqueda');
+            campoBusqueda.style.display = campoBusqueda.style.display === 'none' || campoBusqueda.style.display === '' ? 'block' : 'none';
+        }
+
+        // Función para filtrar obras por título
+        function filtrarObras() {
+            var input = document.getElementById('buscar').value.toLowerCase();
+            var obras = document.querySelectorAll('.obra');
+
+            obras.forEach(function(obra) {
+                var titulo = obra.getAttribute('data-titulo').toLowerCase();
+                var autor = obra.getAttribute('data-autor').toLowerCase(); // Obtener el autor
+                obra.style.display = titulo.includes(input) || autor.includes(input) ? 'block' : 'none';
+            });
+        }
+
+        // Función para mostrar la imagen expandida
+        function mostrarImagen(src) {
+            var modal = document.getElementById('modal');
+            var modalImg = document.getElementById('imgExpandida');
+            document.getElementById("encabezado").style.display = "none";
+            modal.style.display = 'flex';
+            modalImg.src = src;
+        }
+
+        // Función para cerrar la imagen expandida
+        function cerrarModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+        // Evento para ocultar el encabezado al desplazarse hacia abajo
+        window.onscroll = function() {
+            var encabezado = document.getElementById("encabezado");
+            if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+                encabezado.style.display = "none"; // Ocultar encabezado
+            } else {
+                encabezado.style.display = "flex"; // Mostrar encabezado
+            }
+        };    </script>
+<!-- Contenedor principal de la galería -->
+<div class="galeria">
+    <!-- 20 bloques de obras -->
+    <div class="obra" data-titulo="a" data-autor="Anuel" onclick="mostrarImagen('https://media.admagazine.com/photos/618a7dbc58ac69e38abb6c2c/16:9/w_1280,c_limit/43884.jpg')">
+        <img src="https://media.admagazine.com/photos/618a7dbc58ac69e38abb6c2c/16:9/w_1280,c_limit/43884.jpg" alt="Título de la obra1">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 1</p>
+            <p><strong>Autor:</strong> Autor 1</p>
+            <p><strong>Técnica:</strong> Técnica 1</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación1.</p>
+    </div>
+    <!-- Repite para otras obras -->
+    
+    <!-- 2 -->
+    <div class="obra" data-titulo="b" data-autor="Lunay" onclick="mostrarImagen('https://portales.inacap.cl/Assets/artequin/img/conoce/la-noche-estrellada.jpg')">
+        <img src="https://portales.inacap.cl/Assets/artequin/img/conoce/la-noche-estrellada.jpg" alt="Título de la obra2">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 2</p>
+            <p><strong>Autor:</strong> Autor 2</p>
+            <p><strong>Técnica:</strong> Técnica 2</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación2.</p>
+    </div>
+    
+    <!-- 3 -->
+    <div class="obra" data-titulo="c" data-autor="Anuel" onclick="mostrarImagen('https://wallpapers.com/images/hd/4k-pictures-sfet0luuynwr4b65.jpg')">
+        <img src="https://wallpapers.com/images/hd/4k-pictures-sfet0luuynwr4b65.jpg" alt="Título de la obra3">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 3</p>
+            <p><strong>Autor:</strong> Autor 3</p>
+            <p><strong>Técnica:</strong> Técnica 3</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación3.</p>
+    </div>
+    
+    <!-- 4 -->
+    <div class="obra" data-titulo="d" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-4.jpg')">
+        <img src="ruta-de-la-imagen-4.jpg" alt="Título de la obra4">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 4</p>
+            <p><strong>Autor:</strong> Autor 4</p>
+            <p><strong>Técnica:</strong> Técnica 4</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación4.</p>
+    </div>
+
+    <!-- 5 -->
+    <div class="obra" data-titulo="f" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-5.jpg')">
+        <img src="ruta-de-la-imagen-5.jpg" alt="Título de la obra5">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 5</p>
+            <p><strong>Autor:</strong> Autor 5</p>
+            <p><strong>Técnica:</strong> Técnica 5</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación5.</p>
+    </div>
+
+    <!-- 6 -->
+    <div class="obra" data-titulo="g" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-6.jpg')">
+        <img src="ruta-de-la-imagen-6.jpg" alt="Título de la obra6">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 6</p>
+            <p><strong>Autor:</strong> Autor 6</p>
+            <p><strong>Técnica:</strong> Técnica 6</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación6.</p>
+    </div>
+
+    <!-- 7 -->
+    <div class="obra" data-titulo="h" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-7.jpg')">
+        <img src="ruta-de-la-imagen-7.jpg" alt="Título de la obra7">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 7</p>
+            <p><strong>Autor:</strong> Autor 7</p>
+            <p><strong>Técnica:</strong> Técnica 7</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación7.</p>
+    </div>
+
+    <!-- 8 -->
+    <div class="obra" data-titulo="i" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-8.jpg')">
+        <img src="ruta-de-la-imagen-8.jpg" alt="Título de la obra8">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 8</p>
+            <p><strong>Autor:</strong> Autor 8</p>
+            <p><strong>Técnica:</strong> Técnica 8</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación8.</p>
+    </div>
+
+    <!-- 9 -->
+    <div class="obra" data-titulo="j" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-9.jpg')">
+        <img src="ruta-de-la-imagen-9.jpg" alt="Título de la obra9">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 9</p>
+            <p><strong>Autor:</strong> Autor 9</p>
+            <p><strong>Técnica:</strong> Técnica 9</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación9.</p>
+    </div>
+
+    <!-- 10 -->
+    <div class="obra" data-titulo="k" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-10.jpg')">
+        <img src="ruta-de-la-imagen-10.jpg" alt="Título de la obra10">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 10</p>
+            <p><strong>Autor:</strong> Autor 10</p>
+            <p><strong>Técnica:</strong> Técnica 10</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación10.</p>
+    </div>
+
+    <!-- 11 -->
+    <div class="obra" data-titulo="l" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-11.jpg')">
+        <img src="ruta-de-la-imagen-11.jpg" alt="Título de la obra11">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 11</p>
+            <p><strong>Autor:</strong> Autor 11</p>
+            <p><strong>Técnica:</strong> Técnica 11</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación11.</p>
+    </div>
+
+    <!-- 12 -->
+    <div class="obra" data-titulo="m" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-12.jpg')">
+        <img src="ruta-de-la-imagen-12.jpg" alt="Título de la obra12">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 12</p>
+            <p><strong>Autor:</strong> Autor 12</p>
+            <p><strong>Técnica:</strong> Técnica 12</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación12.</p>
+    </div>
+
+    <!-- 13 -->
+    <div class="obra" data-titulo="n" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-13.jpg')">
+        <img src="ruta-de-la-imagen-13.jpg" alt="Título de la obra13">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 13</p>
+            <p><strong>Autor:</strong> Autor 13</p>
+            <p><strong>Técnica:</strong> Técnica 13</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación13.</p>
+    </div>
+
+    <!-- 14 -->
+    <div class="obra" data-titulo="o" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-14.jpg')">
+        <img src="ruta-de-la-imagen-14.jpg" alt="Título de la obra14">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 14</p>
+            <p><strong>Autor:</strong> Autor 14</p>
+            <p><strong>Técnica:</strong> Técnica 14</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación14.</p>
+    </div>
+
+    <!-- 15 -->
+    <div class="obra" data-titulo="p" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-15.jpg')">
+        <img src="ruta-de-la-imagen-15.jpg" alt="Título de la obra15">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 15</p>
+            <p><strong>Autor:</strong> Autor 15</p>
+            <p><strong>Técnica:</strong> Técnica 15</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación15.</p>
+    </div>
+
+    <!-- 16 -->
+    <div class="obra" data-titulo="q" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-16.jpg')">
+        <img src="ruta-de-la-imagen-16.jpg" alt="Título de la obra16">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 16</p>
+            <p><strong>Autor:</strong> Autor 16</p>
+            <p><strong>Técnica:</strong> Técnica 16</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación16.</p>
+    </div>
+
+    <!-- 17 -->
+    <div class="obra" data-titulo="r" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-17.jpg')">
+        <img src="ruta-de-la-imagen-17.jpg" alt="Título de la obra17">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 17</p>
+            <p><strong>Autor:</strong> Autor 17</p>
+            <p><strong>Técnica:</strong> Técnica 17</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación17.</p>
+    </div>
+
+    <!-- 18 -->
+    <div class="obra" data-titulo="s" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-18.jpg')">
+        <img src="ruta-de-la-imagen-18.jpg" alt="Título de la obra18">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 18</p>
+            <p><strong>Autor:</strong> Autor 18</p>
+            <p><strong>Técnica:</strong> Técnica 18</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación18.</p>
+    </div>
+
+    <!-- 19 -->
+    <div class="obra" data-titulo="t" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-19.jpg')">
+        <img src="ruta-de-la-imagen-19.jpg" alt="Título de la obra19">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 19</p>
+            <p><strong>Autor:</strong> Autor 19</p>
+            <p><strong>Técnica:</strong> Técnica 19</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación19.</p>
+    </div>
+
+    <!-- 20 -->
+    <div class="obra" data-titulo="u" data-autor="Anuel" onclick="mostrarImagen('ruta-de-la-imagen-20.jpg')">
+        <img src="ruta-de-la-imagen-20.jpg" alt="Título de la obra20">
+        <div class="ficha-tecnica">
+            <p><strong>Título:</strong> Título 20</p>
+            <p><strong>Autor:</strong> Autor 20</p>
+            <p><strong>Técnica:</strong> Técnica 20</p>
+            <p><strong>Dimensiones:</strong> Dimensiones de la obra</p>
+            <p><strong>Año:</strong> Año de la obra</p>
+        </div>
+        <p class="descripcion">Justificación20.</p>
+    </div>
+</div>
+
+<!-- Ventana emergente para mostrar la imagen -->
+<div class="ventana-emergente" id="ventana-emergente" onclick="cerrarVentana()">
+    <img id="imagen-grande" src="" alt="Imagen ampliada">
+</div>
+
+<!-- CSS -->
+<style>
+    .galeria {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+    }
+    .obra img {
+        width: 100%;
+        border-radius: 10px;
+    }
+    .ficha-tecnica {
+        display: none;
+    }
+    .obra:hover .ficha-tecnica {
+        display: block;
+    }
+    .ventana-emergente {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        justify-content: center;
+        align-items: center;
+	z-index=1000
+    }
+    .ventana-emergente img {
+        max-width: 90%;
+        max-height: 90%;
+    }
+</style>
+
+<!-- JavaScript -->
+<script>
+    function mostrarImagen(ruta) {
+        var ventana = document.getElementById('ventana-emergente');
+        var imagen = document.getElementById('imagen-grande');
+        imagen.src = ruta;
+        ventana.style.display = 'flex';
+    }
+
+    function cerrarVentana() {
+        var ventana = document.getElementById('ventana-emergente');
+        ventana.style.display = 'none';
+    }
+</script>
+</body>
+</html>
